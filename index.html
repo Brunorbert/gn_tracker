@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="GN Tracker"/>
+<title>Gáznár Norbert · Tracker</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#0d0f14;color:#f0f0f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;overscroll-behavior:none}
+::-webkit-scrollbar{display:none}
+button{font-family:inherit;-webkit-appearance:none;border:none;cursor:pointer}
+input{font-family:inherit}
+input[type=number]{-moz-appearance:textfield}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
+#app{min-height:100vh;padding-bottom:88px}
+
+/* HEADER */
+.header{background:linear-gradient(135deg,#131720,#1a1f2e);border-bottom:1px solid #ffffff0f;
+  padding:14px 20px 10px;position:sticky;top:0;z-index:100}
+.header-row{display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:17px;font-weight:800;letter-spacing:-.4px}
+.header p{font-size:11px;color:#ffffff44;font-family:monospace;margin-top:2px}
+.week-badge{font-size:11px;background:#2ecc7115;color:#2ecc71;border:1px solid #2ecc7128;
+  border-radius:8px;padding:3px 10px;font-family:monospace;white-space:nowrap}
+.nav{display:flex;background:#ffffff08;border-radius:12px;padding:3px;margin-top:10px}
+.nav button{flex:1;padding:7px 0;border-radius:9px;background:transparent;color:#ffffff66;
+  font-weight:500;font-size:12px;transition:all .2s}
+.nav button.active{background:#2ecc71;color:#0d0f14;font-weight:700}
+
+/* DAY ROW */
+.day-row{display:flex;gap:6px;overflow-x:auto;padding:12px 20px 0;scrollbar-width:none}
+.day-btn{flex-shrink:0;width:44px;height:52px;border-radius:12px;background:#ffffff08;
+  color:#ffffff77;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;border:2px solid transparent;transition:all .2s}
+.day-btn .day-name{font-size:12px;font-weight:700}
+.day-btn .day-dot{font-size:8px}
+.day-btn .day-pct{font-size:9px;font-family:monospace}
+
+/* CONTENT */
+.content{padding:14px 20px}
+
+/* CARD */
+.card{background:#131720;border:1px solid #ffffff0f;border-radius:14px;padding:14px 16px;margin-bottom:12px}
+.card-title{font-size:11px;font-weight:700;color:#ffffff44;margin-bottom:10px;text-transform:uppercase;letter-spacing:.8px}
+
+/* STATS BAR */
+.stats-bar{display:flex;align-items:center;gap:14px}
+.ring-wrap{position:relative;flex-shrink:0}
+.ring-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:800;color:#fff;font-family:monospace}
+.stats-right{flex:1}
+.stats-count{font-size:14px;font-weight:700;margin-bottom:5px}
+
+/* PROGRESS BAR */
+.prog-outer{height:7px;background:#ffffff12;border-radius:4px;overflow:hidden}
+.prog-inner{height:100%;border-radius:4px;transition:width .5s ease}
+
+/* BADGES */
+.badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.badge{font-size:11px;border-radius:6px;padding:2px 8px;font-weight:600;border:1px solid transparent}
+
+/* EDZÉS BANNER */
+.edzés-banner{border-radius:10px;padding:8px 12px;margin-bottom:10px;font-size:12px;font-weight:600}
+
+/* FILTER ROW */
+.filter-row{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px;scrollbar-width:none}
+.filter-btn{flex-shrink:0;padding:5px 11px;border-radius:20px;border:1px solid #ffffff15;
+  background:transparent;color:#ffffff55;font-size:12px;font-weight:500;white-space:nowrap}
+.filter-btn.active{font-weight:700}
+
+/* ITEM CARD */
+.item-card{display:flex;align-items:flex-start;gap:10px;padding:11px 13px;
+  border:1px solid #ffffff0a;border-radius:12px;margin-bottom:7px;cursor:pointer;
+  background:#131720;user-select:none;-webkit-user-select:none;transition:all .15s}
+.item-icon{font-size:17px;flex-shrink:0;margin-top:1px}
+.item-body{flex:1}
+.item-label{font-size:13px;color:#f0f0f0;line-height:1.4}
+.item-label.done{color:#ffffff66;text-decoration:line-through}
+.item-time{font-size:11px;color:#ffffff33;font-family:monospace;margin-top:2px}
+.checkbox{width:21px;height:21px;border-radius:6px;border:2px solid #ffffff22;
+  background:transparent;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:1px;transition:all .15s}
+
+/* WEIGHT */
+.weight-stats{display:flex;gap:8px;margin-bottom:14px}
+.weight-stat{flex:1;text-align:center;background:#ffffff06;border-radius:10px;padding:8px 4px}
+.weight-stat .val{font-size:13px;font-weight:800}
+.weight-stat .lbl{font-size:10px;color:#ffffff44;margin-top:2px}
+.weight-input-row{display:flex;gap:8px;margin-top:12px;align-items:center}
+.weight-input{flex:1;background:#ffffff0a;border:1px solid #3a7bd544;border-radius:10px;
+  color:#fff;font-size:16px;font-family:monospace;padding:10px 14px;outline:none;width:100%}
+.weight-btn{padding:10px 18px;border:1px solid #3a7bd5;border-radius:10px;
+  background:#3a7bd522;color:#3a7bd5;font-weight:700;font-size:13px;white-space:nowrap}
+.weight-goal{font-size:12px;color:#ffffff44;margin-top:8px;text-align:center}
+
+/* MONTH NAV */
+.month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.month-nav-btn{background:#ffffff08;border:1px solid #ffffff15;border-radius:8px;
+  color:#fff;padding:5px 14px;font-size:14px}
+.month-nav-label{font-weight:700;font-size:15px}
+
+/* BOTTOM BAR */
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:#131720ee;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-top:1px solid #ffffff0f;padding:10px 20px 22px;display:flex;gap:8px}
+.act-btn{flex:1;padding:11px 0;border-radius:12px;font-weight:700;font-size:12px}
+
+/* BANNER */
+.banner{background:#2ecc7115;border:1px solid #2ecc7130;border-radius:10px;
+  padding:9px 13px;font-size:12px;color:#2ecc71;margin-bottom:12px}
+
+/* SUMMARY CAT ROW */
+.cat-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.cat-label{font-size:12px;font-weight:600;width:88px;flex-shrink:0}
+.cat-num{font-size:11px;color:#ffffff44;font-family:monospace;width:34px;text-align:right}
+
+/* DAY WEEK ROW */
+.day-week-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;cursor:pointer}
+.day-week-short{width:30px;font-size:12px;font-weight:700}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ═══════════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════════
+const WEEK_PLAN = {
+  1:{label:"Hétfő",short:"H",color:"#3a7bd5",edzés:"🥋 BJJ Zone 3–4 | 19:00–21:00",items:[
+    {id:"h_r",  cat:"étrend",    time:"08:00",icon:"🥤",label:"Reggeli Erő Turmix: 300ml zabtej + 40g fehérje + 80g zabpehely + 1 banán + 1ek mjvaj + 5g kreatin (~620 kcal / F:42g)"},
+    {id:"h_t",  cat:"étrend",    time:"11:00",icon:"🍽️",label:"Tized: 200g csirkemell + 150g rizs + brokkoli/cukkíni + olivaolaj (~550 kcal / F:35g)"},
+    {id:"h_e",  cat:"étrend",    time:"14:00",icon:"🍽️",label:"Ebéd: 200g lazac + édesburgonya + ½ avokádó + saláta (~650 kcal / F:45g)"},
+    {id:"h_p",  cat:"étrend",    time:"17:30",icon:"⚡", label:"Pre-BJJ: 150g pulykamell + 100g tönköly tészta + 6g L-citrullin (~480 kcal / F:38g)"},
+    {id:"h_pb", cat:"étrend",    time:"21:15",icon:"💪",label:"Post-BJJ Turmix: 250ml mandulatej + 40g marha fehérje + banán + méz (~450 kcal / F:40g)"},
+    {id:"h_es", cat:"étrend",    time:"22:00",icon:"🥤",label:"Esti Alvás Turmix: 250ml mandulatej + 30g kazein + 1ek mjvaj + fahéj + ½ banán (~380 kcal / F:32g)"},
+    {id:"h_bjj",cat:"edzés",     time:"19:00",icon:"🥋",label:"BJJ EDZÉS Zone 3–4 | Laktátküszöb: 141 bpm | Szabad légzés! Valsalva TILOS!"},
+    {id:"h_s1", cat:"kiegészítő",time:"08:00",icon:"💊",label:"Reggeli: kreatin 5g, halolaj GAL, D3 5000NE + K2, Q10 100mg, cink, C-vit, marhakollagén"},
+    {id:"h_s2", cat:"kiegészítő",time:"17:30",icon:"💊",label:"Pre-BJJ: L-citrullin malát 6g (étkezésbe keverve)"},
+    {id:"h_s3", cat:"kiegészítő",time:"19:00",icon:"💊",label:"Edzés közben: elektrolit + víz"},
+    {id:"h_s4", cat:"kiegészítő",time:"22:00",icon:"💊",label:"Este: magnézium-biszglicinát + ashwagandha (NE reggel!)"},
+    {id:"h_al", cat:"protokoll", time:"22:30",icon:"🌙",label:"Lefekvés 22:30 (±30 perc) | Ébredés 08:00"},
+    {id:"h_zh", cat:"protokoll", time:"08:00",icon:"🚿",label:"Hideg/meleg váltózuhany (emelt AIX protokoll)"},
+  ]},
+  2:{label:"Kedd",short:"K",color:"#2ecc71",edzés:"💪 Calisthenics A – Push + Core | Napközben ~65 perc",items:[
+    {id:"k_r",  cat:"étrend",    time:"08:00",icon:"🥤",label:"Reggeli Erő Turmix (azonos mint H) + 5g kreatin (~620 kcal / F:42g)"},
+    {id:"k_p",  cat:"étrend",    time:"10:30",icon:"⚡", label:"Zöld Energia Turmix pre-WO: 250ml kókuszvíz + 40g fehérje + 60g spenót + ½ avokádó + 6g L-citrullin (~420 kcal / F:38g)"},
+    {id:"k_pw", cat:"étrend",    time:"13:00",icon:"💪",label:"Post-WO Ebéd: 250g csirke/pulyka + 200g rizs + 2 tojás + párolt zöldség (~750 kcal / F:55g)"},
+    {id:"k_u",  cat:"étrend",    time:"16:30",icon:"🍽️",label:"Uzsonna: 200g görög joghurt + 40g granola + bogyós gyümölcs + 30g dió (~500 kcal / F:35g)"},
+    {id:"k_v",  cat:"étrend",    time:"19:00",icon:"🍽️",label:"Vacsora (19:30 ELŐTT!): 200g lazac/marha + 150g édesburgonya + nagy saláta + olivaolaj (~600 kcal / F:42g)"},
+    {id:"k_es", cat:"étrend",    time:"22:00",icon:"🥤",label:"Esti Alvás Turmix + kazein (~380 kcal / F:32g)"},
+    {id:"k_ca", cat:"edzés",     time:"12:00",icon:"💪",label:"CALISTHENICS A – Skill (8p): Tuck L-sit 3×max, Planche Lean 3×10mp | Fő: Push-up prog 4×6-10, Weighted Dip 4×8-10, Pike PU/Wall HSPU 4×8-10, Ring PU 3×10-12, Ab Wheel 4×6-10, Band Pull-apart 4×15-20, DB Curl 3×10-12"},
+    {id:"k_s1", cat:"kiegészítő",time:"08:00",icon:"💊",label:"Reggeli: halolaj, D3+K2, Q10, cink, C-vit, marhakollagén"},
+    {id:"k_s2", cat:"kiegészítő",time:"10:30",icon:"💊",label:"Pre-WO: L-citrullin malát 6g (Zöld turmixba)"},
+    {id:"k_s3", cat:"kiegészítő",time:"22:00",icon:"💊",label:"Este: magnézium-biszglicinát + ashwagandha"},
+    {id:"k_al", cat:"protokoll", time:"22:30",icon:"🌙",label:"Lefekvés 22:30 (±30 perc) | Napi össz: ~4270 kcal"},
+    {id:"k_zh", cat:"protokoll", time:"08:00",icon:"🚿",label:"Hideg/meleg váltózuhany"},
+    {id:"k_sa", cat:"protokoll", time:"14:30",icon:"🧖",label:"GŐZSZAUNA 20 perc (4–5 fokozat) → hideg zuhany 2–3 perc | Calisthenics A után ~60–90 perccel"},
+    {id:"k_rf", cat:"protokoll", time:"19:00",icon:"⚠️",label:"Reflux: szilárd étel max. 19:30-ig!"},
+  ]},
+  3:{label:"Szerda",short:"Sz",color:"#3a7bd5",edzés:"🥋 BJJ Zone 3–4 | 19:00–21:00",items:[
+    {id:"sz_r",  cat:"étrend",    time:"08:00",icon:"🥤",label:"Reggeli Erő Turmix + kreatin (~620 kcal / F:42g)"},
+    {id:"sz_t",  cat:"étrend",    time:"11:00",icon:"🍽️",label:"Tized (rotáció): 200g marha/tonhal + köles/quinoa + sült zöldség (~550 kcal / F:35g)"},
+    {id:"sz_e",  cat:"étrend",    time:"14:00",icon:"🍽️",label:"Ebéd: 200g pisztráng + édesburgonya + avokádó + rukkolasaláta (~650 kcal / F:45g)"},
+    {id:"sz_p",  cat:"étrend",    time:"17:30",icon:"⚡", label:"Pre-BJJ: 150g csirkemell + hajdina tészta + paradicsomszósz + 6g L-citrullin (~480 kcal / F:38g)"},
+    {id:"sz_pb", cat:"étrend",    time:"21:15",icon:"💪",label:"Post-BJJ Regeneráló Turmix: 250ml mandulatej + 40g marha fehérje + banán + méz + fahéj (~450 kcal / F:40g)"},
+    {id:"sz_es", cat:"étrend",    time:"22:00",icon:"🥤",label:"Esti Alvás Turmix + kazein (~380 kcal / F:32g)"},
+    {id:"sz_bj", cat:"edzés",     time:"19:00",icon:"🥋",label:"BJJ EDZÉS Zone 3–4 | Szabad légzés! Valsalva TILOS! | Fehérje/SZH rotáció"},
+    {id:"sz_s1", cat:"kiegészítő",time:"08:00",icon:"💊",label:"Reggeli: halolaj, D3+K2, Q10, cink"},
+    {id:"sz_s2", cat:"kiegészítő",time:"17:30",icon:"💊",label:"Pre-BJJ: L-citrullin malát 6g (beleolvasztva)"},
+    {id:"sz_s3", cat:"kiegészítő",time:"19:00",icon:"💊",label:"Edzés közben: elektrolit + víz"},
+    {id:"sz_s4", cat:"kiegészítő",time:"22:00",icon:"💊",label:"Este: magnézium-biszglicinát + ashwagandha"},
+    {id:"sz_al", cat:"protokoll", time:"22:30",icon:"🌙",label:"Lefekvés 22:30 (±30 perc)"},
+    {id:"sz_zh", cat:"protokoll", time:"08:00",icon:"🚿",label:"Hideg/meleg váltózuhany"},
+  ]},
+  4:{label:"Csütörtök",short:"Cs",color:"#2ecc71",edzés:"💪 Calisthenics B – Pull + Core | Napközben ~65 perc",items:[
+    {id:"cs_r",  cat:"étrend",    time:"08:00",icon:"🥤",label:"Reggeli Erő Turmix + kreatin (~620 kcal / F:42g)"},
+    {id:"cs_p",  cat:"étrend",    time:"10:30",icon:"⚡", label:"Zöld Energia Turmix pre-WO + 6g L-citrullin (~420 kcal / F:38g)"},
+    {id:"cs_pw", cat:"étrend",    time:"13:00",icon:"💪",label:"Post-WO Ebéd: 250g lazac + 200g vadrizs + 2 tojás + spenót + olivaolaj (~750 kcal / F:55g)"},
+    {id:"cs_u",  cat:"étrend",    time:"16:30",icon:"🍽️",label:"Uzsonna: 200g túró + méz + bogyós gyümölcs + 30g kesudió (~500 kcal / F:35g)"},
+    {id:"cs_v",  cat:"étrend",    time:"19:00",icon:"🍽️",label:"Vacsora (19:30 ELŐTT!): 200g csirkemell + quinoa + nagy saláta + olivaolaj (~600 kcal / F:42g)"},
+    {id:"cs_es", cat:"étrend",    time:"22:00",icon:"🥤",label:"Esti Alvás Turmix + kazein (~380 kcal / F:32g)"},
+    {id:"cs_ca", cat:"edzés",     time:"12:00",icon:"💪",label:"CALISTHENICS B – Skill (8p): Human Flag Tuck 3×max (cél 8mp), Front Lever Tuck 3×max | Fő: Weighted Chin-up 5×5-8, Weighted Pull-up 4×5-8, Inverted Row 4×10-12, Band Face Pull 4×15-20, Scapular Pull-up 3×12-15, L-sit prog 4×max, Hollow Body 4×25-45mp, Dead Bug 3×8-10/oldal"},
+    {id:"cs_s1", cat:"kiegészítő",time:"08:00",icon:"💊",label:"Reggeli: halolaj, D3+K2, Q10, cink"},
+    {id:"cs_s2", cat:"kiegészítő",time:"10:30",icon:"💊",label:"Pre-WO: L-citrullin malát 6g (Zöld turmixba)"},
+    {id:"cs_s3", cat:"kiegészítő",time:"22:00",icon:"💊",label:"Este: magnézium-biszglicinát + ashwagandha"},
+    {id:"cs_al", cat:"protokoll", time:"22:30",icon:"🌙",label:"Lefekvés 22:30 | ⚠️ Naplózd a Chin-up súlyt és ismétlésszámot!"},
+    {id:"cs_zh", cat:"protokoll", time:"08:00",icon:"🚿",label:"Hideg/meleg váltózuhany"},
+    {id:"cs_sa", cat:"protokoll", time:"14:30",icon:"🧖",label:"GŐZSZAUNA 20 perc → hideg zuhany 2–3 perc | Calisthenics B után ~60–90 perccel"},
+    {id:"cs_rf", cat:"protokoll", time:"19:00",icon:"⚠️",label:"Reflux: szilárd étel max. 19:30-ig!"},
+  ]},
+  5:{label:"Péntek",short:"P",color:"#3a7bd5",edzés:"🥋 BJJ Zone 3–4 | 19:00–21:00 | Hét utolsó intenzív edzése",items:[
+    {id:"p_r",  cat:"étrend",    time:"08:00",icon:"🥤",label:"Reggeli Erő Turmix + kreatin (~620 kcal / F:42g)"},
+    {id:"p_t",  cat:"étrend",    time:"11:00",icon:"🍽️",label:"Tized: 200g pulyka + barna rizs + zöldség + olivaolaj (~550 kcal / F:35g)"},
+    {id:"p_e",  cat:"étrend",    time:"14:00",icon:"🍽️",label:"Ebéd: 200g tonhal/lazac + édesburgonya + saláta + avokádó (~650 kcal / F:45g)"},
+    {id:"p_pb", cat:"étrend",    time:"17:30",icon:"⚡", label:"Pre-BJJ: 150g marhafelsál + 2 szelet tönköly kenyér + zöldség + 6g L-citrullin (~480 kcal / F:38g) – UTOLSÓ SZILÁRD ÉTEL!"},
+    {id:"p_pt", cat:"étrend",    time:"21:15",icon:"💪",label:"Post-BJJ Turmix: 45g fehérjepor (EXTRA – heti lezárás!) + banán + méz + mandulatej (~470 kcal / F:45g)"},
+    {id:"p_es", cat:"étrend",    time:"22:00",icon:"🥤",label:"Esti Alvás Turmix + kazein (~380 kcal / F:32g)"},
+    {id:"p_bj", cat:"edzés",     time:"19:00",icon:"🥋",label:"BJJ EDZÉS Zone 3–4 | Szabad légzés! Valsalva TILOS! – Post-WO turmix extra fontos"},
+    {id:"p_s1", cat:"kiegészítő",time:"08:00",icon:"💊",label:"Reggeli: halolaj, D3+K2, Q10, cink"},
+    {id:"p_s2", cat:"kiegészítő",time:"17:30",icon:"💊",label:"Pre-BJJ: L-citrullin malát 6g"},
+    {id:"p_s3", cat:"kiegészítő",time:"19:00",icon:"💊",label:"Edzés közben: elektrolit + víz"},
+    {id:"p_s4", cat:"kiegészítő",time:"22:00",icon:"💊",label:"Este: magnézium-biszglicinát + ashwagandha"},
+    {id:"p_al", cat:"protokoll", time:"22:30",icon:"🌙",label:"Lefekvés 22:30 | Szauna mellőzve – BJJ utáni szaunázás rontja az alvást"},
+    {id:"p_zh", cat:"protokoll", time:"08:00",icon:"🚿",label:"Hideg/meleg váltózuhany"},
+  ]},
+  6:{label:"Szombat",short:"Szo",color:"#f39c12",edzés:"🚴 Kerékpár ~40 km | Zone 2: 109–126 bpm | Aktív regeneráció",items:[
+    {id:"s_r",  cat:"étrend",    time:"08:00",icon:"🥤",label:"Reggeli Erő Turmix + kreatin (~620 kcal / F:42g) – ha kerékpár 10:00+, ez a pre-ride étkezés"},
+    {id:"s_pr", cat:"étrend",    time:"10:30",icon:"⚡", label:"Pre-ride szilárd: 3 tojásos rántotta + 2 szelet tönköly kenyér + avokádó + paradicsom + narancs (~600 kcal / F:35g) – ha kerékpár 12:00+"},
+    {id:"s_ft", cat:"étrend",    time:"12:00",icon:"💪",label:"Kerékpáros Feltöltő Turmix: 300ml narancslé + 40g fehérje + banán + méz + csipet só + kreatin (~520 kcal / F:42g)"},
+    {id:"s_ke", cat:"étrend",    time:"15:00",icon:"🍽️",label:"Késő ebéd: 250g marha/lazac + 200g édesburgonya + párolt zöldség + olivaolaj (~650 kcal / F:45g)"},
+    {id:"s_v",  cat:"étrend",    time:"18:30",icon:"🍽️",label:"Vacsora (19:30 ELŐTT!): 200g csirkemell + quinoa + nagy saláta + olivaolaj (~550 kcal / F:40g)"},
+    {id:"s_es", cat:"étrend",    time:"22:00",icon:"🥤",label:"Esti Alvás Turmix + kazein (~380 kcal / F:32g)"},
+    {id:"s_bi", cat:"edzés",     time:"10:00",icon:"🚴",label:"KERÉKPÁR ~40 km Zone 2: 109–126 bpm – ne lödd túl! Elektrolit + víz menet közben"},
+    {id:"s_s1", cat:"kiegészítő",time:"08:00",icon:"💊",label:"Reggeli: halolaj, D3+K2, Q10, cink, C-vit, marhakollagén"},
+    {id:"s_s2", cat:"kiegészítő",time:"22:00",icon:"💊",label:"Este: magnézium-biszglicinát + ashwagandha"},
+    {id:"s_al", cat:"protokoll", time:"22:30",icon:"🌙",label:"Lefekvés 22:30 – Szombat = aktív pihenő, ne pörgesd fel a pulzust"},
+    {id:"s_zh", cat:"protokoll", time:"08:00",icon:"🚿",label:"Hideg/meleg váltózuhany"},
+    {id:"s_sa", cat:"protokoll", time:"14:30",icon:"🧖",label:"GŐZSZAUNA 20 perc (opcionális) → hideg zuhany | Kerékpár után ~60–90 perccel"},
+  ]},
+  0:{label:"Vasárnap",short:"V",color:"#e85d3a",edzés:"🥊 Box Zone 3–4 | 10:00–12:00 | (Kéthetente: Finn szauna)",items:[
+    {id:"v_bt", cat:"étrend",    time:"08:00",icon:"⚡", label:"Box Nap Turmix pre-WO: 250ml zabtej + 35g fehérje + 60g zabpehely + banán + méz + 5g béta-alanin (~490 kcal / F:38g) – 2 órával box előtt"},
+    {id:"v_pe", cat:"étrend",    time:"12:30",icon:"💪",label:"Post-Box Ebéd: 250g csirkemell/marha + 200g barna rizs + 2 tojás + spenót + olivaolaj (~750 kcal / F:55g)"},
+    {id:"v_u",  cat:"étrend",    time:"15:30",icon:"🥤",label:"Uzsonna Turmix: 250ml mandulatej + 35g fehérje + ½ avokádó + banán + dióvaj (~450 kcal / F:35g)"},
+    {id:"v_va", cat:"étrend",    time:"18:30",icon:"🍽️",label:"Vacsora (19:30 ELŐTT!): 200g lazac + édesburgonya + brokkoli + olivaolaj + citromlé (~600 kcal / F:42g)"},
+    {id:"v_es", cat:"étrend",    time:"22:00",icon:"🥤",label:"Esti Alvás Turmix + kazein (~380 kcal / F:32g)"},
+    {id:"v_bx", cat:"edzés",     time:"10:00",icon:"🥊",label:"BOX EDZÉS Zone 3–4 / laktacid zóna (155–180 bpm) | Szabad légzés! Valsalva TILOS!"},
+    {id:"v_s1", cat:"kiegészítő",time:"08:00",icon:"💊",label:"Reggeli: halolaj, D3+K2, Q10, cink, C-vit, marhakollagén"},
+    {id:"v_s2", cat:"kiegészítő",time:"08:00",icon:"💊",label:"Pre-WO: béta-alanin 5g (Box Nap Turmixba) – laktacid zónához"},
+    {id:"v_s3", cat:"kiegészítő",time:"10:00",icon:"💊",label:"Edzés közben: elektrolit + víz, porcvédő komplex II"},
+    {id:"v_s4", cat:"kiegészítő",time:"22:00",icon:"💊",label:"Este: magnézium-biszglicinát + ashwagandha"},
+    {id:"v_al", cat:"protokoll", time:"22:30",icon:"🌙",label:"Lefekvés 22:30 | Finn szauna: box után min. 2 óra elteltével!"},
+    {id:"v_zh", cat:"protokoll", time:"08:00",icon:"🚿",label:"Hideg/meleg váltózuhany"},
+    {id:"v_sa", cat:"protokoll", time:"14:30",icon:"🧖",label:"FINN SZAUNA (kéthetente): 2–3 kör 10–12 perc + hideg víz | VAGY Gőzszauna 20 perc → hideg zuhany"},
+  ]},
+};
+
+const CAT_CFG = {
+  edzés:      {bg:"#e85d3a22",border:"#e85d3a",text:"#e85d3a",label:"Edzés"},
+  étrend:     {bg:"#2ecc7122",border:"#2ecc71",text:"#2ecc71",label:"Étrend"},
+  kiegészítő: {bg:"#f39c1222",border:"#f39c12",text:"#f39c12",label:"Kiegészítő"},
+  protokoll:  {bg:"#9b59b622",border:"#9b59b6",text:"#9b59b6",label:"Protokoll"},
+};
+
+const MONTH_HU=["Január","Február","Március","Április","Május","Június","Július","Augusztus","Szeptember","Október","November","December"];
+const START_W=85.6, GOAL_W=90.0;
+const TKEY="gn_t_v5", WKEY="gn_w_v1";
+
+// ═══════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════
+function todayStr(){const d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());}
+function pad(n){return String(n).padStart(2,"0");}
+function getWeekId(dt){const d=dt?new Date(dt):new Date();const s=new Date(d.getFullYear(),0,1);const w=Math.ceil(((d-s)/86400000+s.getDay()+1)/7);return d.getFullYear()+"-W"+pad(w);}
+function todayDow(){return new Date().getDay();}
+function weeksInMonth(y,m){const r=[];const n=new Date(y,m+1,0).getDate();for(let i=1;i<=n;i++){const w=getWeekId(new Date(y,m,i));if(!r.includes(w))r.push(w);}return r;}
+function calcStats(checked,dow){
+  const day=WEEK_PLAN[dow];if(!day)return{total:0,done:0,pct:0,bycat:{}};
+  const t=day.items.length,d=day.items.filter(i=>checked[i.id]).length;
+  const bc={};for(const c of Object.keys(CAT_CFG)){const its=day.items.filter(i=>i.cat===c);bc[c]={total:its.length,done:its.filter(i=>checked[i.id]).length};}
+  return{total:t,done:d,pct:t?Math.round(d/t*100):0,bycat:bc};
+}
+function calcWeekStats(checked){
+  let t=0,d=0;const bc={};for(const c of Object.keys(CAT_CFG))bc[c]={total:0,done:0};
+  for(const dow of Object.keys(WEEK_PLAN))for(const it of WEEK_PLAN[dow].items){t++;bc[it.cat].total++;if(checked[it.id]){d++;bc[it.cat].done++;}}
+  return{total:t,done:d,pct:t?Math.round(d/t*100):0,bycat:bc};
+}
+function loadLS(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):{};}catch{return{};}}
+function saveLS(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+let state={
+  view:"today",
+  selDay:todayDow(),
+  weekId:getWeekId(),
+  filterCat:"all",
+  monthOff:0,
+  banner:null,
+  wInput:"",
+  wSaved:false,
+  allData:loadLS(TKEY),
+  weightData:loadLS(WKEY),
+};
+
+function setState(patch){
+  Object.assign(state,typeof patch==="function"?patch(state):patch);
+  render();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SVG RING
+// ═══════════════════════════════════════════════════════════════
+function ringHTML(pct,size,color){
+  const stroke=size>70?8:7,r=(size-stroke)/2,circ=2*Math.PI*r,dash=(pct/100)*circ;
+  return `<div style="position:relative;width:${size}px;height:${size}px;flex-shrink:0">
+    <svg width="${size}" height="${size}" style="transform:rotate(-90deg)">
+      <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="#ffffff15" stroke-width="${stroke}"/>
+      <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}"
+        stroke-dasharray="${dash} ${circ-dash}" stroke-linecap="round"/>
+    </svg>
+    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+      font-size:${Math.round(size*.21)}px;font-weight:800;color:#fff;font-family:monospace">${pct}%</div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// WEIGHT CHART SVG
+// ═══════════════════════════════════════════════════════════════
+function weightChartHTML(entries){
+  if(!entries.length)return`<div style="text-align:center;color:#ffffff33;font-size:13px;padding:18px 0">Még nincs súlyadat.</div>`;
+  const W=300,H=110,PL=38,PR=12,PT=14,PB=26,iW=W-PL-PR,iH=H-PT-PB;
+  const vals=[...entries.map(e=>e.w),GOAL_W,START_W];
+  const minV=Math.min(...vals)-1,maxV=Math.max(...vals)+1;
+  const xS=i=>PL+(i/(entries.length-1||1))*iW;
+  const yS=v=>PT+iH-((v-minV)/(maxV-minV))*iH;
+  const lp=entries.map((e,i)=>`${i===0?"M":"L"}${xS(i).toFixed(1)},${yS(e.w).toFixed(1)}`).join(" ");
+  const ap=`${lp} L${xS(entries.length-1).toFixed(1)},${PT+iH} L${xS(0).toFixed(1)},${PT+iH} Z`;
+  const labels=new Set([0,entries.length-1]);for(let i=0;i<entries.length;i+=7)labels.add(i);
+  const yLabels=[Math.round(minV+1),Math.round((minV+maxV)/2),Math.round(maxV-1)];
+  return`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W}px;display:block">
+    <defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3a7bd5"/><stop offset="100%" stop-color="#3a7bd500"/>
+    </linearGradient></defs>
+    <line x1="${PL}" x2="${PL+iW}" y1="${yS(START_W).toFixed(1)}" y2="${yS(START_W).toFixed(1)}" stroke="#ffffff25" stroke-width="1" stroke-dasharray="4 3"/>
+    <text x="${PL+2}" y="${(yS(START_W)-3).toFixed(1)}" font-size="9" fill="#ffffff44">Kezdő: ${START_W}</text>
+    <line x1="${PL}" x2="${PL+iW}" y1="${yS(GOAL_W).toFixed(1)}" y2="${yS(GOAL_W).toFixed(1)}" stroke="#2ecc7166" stroke-width="1.5" stroke-dasharray="5 3"/>
+    <text x="${PL+2}" y="${(yS(GOAL_W)-3).toFixed(1)}" font-size="9" fill="#2ecc71aa">Cél: ${GOAL_W}</text>
+    ${entries.length>1?`<path d="${ap}" fill="url(#wg)" opacity=".2"/><path d="${lp}" fill="none" stroke="#3a7bd5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`:""}
+    ${entries.map((e,i)=>`<circle cx="${xS(i).toFixed(1)}" cy="${yS(e.w).toFixed(1)}" r="3" fill="#3a7bd5" stroke="#0d0f14" stroke-width="1.5"/>`).join("")}
+    ${yLabels.map(v=>`<text x="${PL-4}" y="${(yS(v)+4).toFixed(1)}" text-anchor="end" font-size="9" fill="#ffffff44">${v}</text>`).join("")}
+    ${[...labels].filter(i=>i<entries.length).map(i=>`<text x="${xS(i).toFixed(1)}" y="${H-4}" text-anchor="middle" font-size="8" fill="#ffffff44">${entries[i].d.slice(5)}</text>`).join("")}
+  </svg>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MONTH BAR CHART
+// ═══════════════════════════════════════════════════════════════
+function monthBarsHTML(weeks){
+  if(!weeks.length)return`<div style="text-align:center;color:#ffffff33;font-size:13px;padding:14px 0">Nincs adat ebben a hónapban.</div>`;
+  const W=300,H=100,PL=28,PR=10,PT=10,PB=26,iW=W-PL-PR,iH=H-PT-PB,n=weeks.length,bW=Math.min(34,(iW/n)-4);
+  return`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W}px;display:block">
+    <line x1="${PL}" x2="${PL+iW}" y1="${PT+iH*.2}" y2="${PT+iH*.2}" stroke="#2ecc7155" stroke-width="1" stroke-dasharray="4 3"/>
+    <text x="${PL+2}" y="${PT+iH*.2-2}" font-size="8" fill="#2ecc7188">80% cél</text>
+    ${weeks.map((w,i)=>{
+      const x=PL+(i+.5)*(iW/n)-bW/2,bH=(w.pct/100)*iH,col=w.pct>=80?"#2ecc71":w.pct>=50?"#f39c12":"#e85d3a";
+      const lbl=w.wid.replace(/\d{4}-W/,"")+"hét";
+      return`<rect x="${x.toFixed(1)}" y="${(PT+iH-bH).toFixed(1)}" width="${bW}" height="${bH.toFixed(1)}" rx="3" fill="${col}" opacity=".85"/>
+        <text x="${(x+bW/2).toFixed(1)}" y="${(PT+iH-bH-3).toFixed(1)}" text-anchor="middle" font-size="8" fill="${col}" font-weight="700">${w.pct}%</text>
+        <text x="${(x+bW/2).toFixed(1)}" y="${H-4}" text-anchor="middle" font-size="7" fill="#ffffff44">${lbl}</text>`;
+    }).join("")}
+    ${[0,50,100].map(v=>`<text x="${PL-3}" y="${(PT+iH*(1-v/100)+4).toFixed(1)}" text-anchor="end" font-size="8" fill="#ffffff33">${v}</text>`).join("")}
+  </svg>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER HELPERS
+// ═══════════════════════════════════════════════════════════════
+function badge(cat,txt){const c=CAT_CFG[cat];return`<span class="badge" style="background:${c.bg};color:${c.text};border-color:${c.border}44">${txt}</span>`;}
+function progBar(pct,color){return`<div class="prog-outer"><div class="prog-inner" style="width:${pct}%;background:${color}"></div></div>`;}
+function pctColor(p){return p>=80?"#2ecc71":p>=50?"#f39c12":"#e85d3a";}
+
+function renderHeader(){
+  const {view,weekId}=state;
+  return`<div class="header">
+    <div class="header-row">
+      <div><h1>Gáznár Norbert</h1><p>Heti terv · Súlynapló · Havi kimutatás</p></div>
+      <span class="week-badge">${weekId}</span>
+    </div>
+    <div class="nav">
+      ${[["today","Nap"],["summary","Összesítő"],["month","Havi"],["weight","Súly"]].map(([v,l])=>
+        `<button onclick="setView('${v}')" class="${view===v?"active":""}">${l}</button>`).join("")}
+    </div>
+  </div>`;
+}
+
+function renderDayRow(){
+  const {selDay,weekId,allData}=state;
+  const today=todayDow();
+  return`<div class="day-row">${Object.entries(WEEK_PLAN).map(([dow,d])=>{
+    const dc=allData?.[weekId]?.[dow]||{};
+    const ds=calcStats(dc,parseInt(dow));
+    const active=selDay===parseInt(dow),isT=parseInt(dow)===today;
+    return`<button class="day-btn" onclick="selDay(${dow})"
+      style="border-color:${active?d.color:"transparent"};background:${active?d.color+"22":"#ffffff08"};color:${isT?"#fff":"#ffffff77"}">
+      <span class="day-name">${d.short}</span>
+      ${isT?`<span class="day-dot" style="color:${d.color}">●</span>`:""}
+      ${ds.pct>0?`<span class="day-pct" style="color:${d.color}">${ds.pct}%</span>`:""}
+    </button>`;
+  }).join("")}</div>`;
+}
+
+function renderDayView(){
+  const {selDay,weekId,allData,filterCat}=state;
+  const day=WEEK_PLAN[selDay];
+  const checked=allData?.[weekId]?.[selDay]||{};
+  const stats=calcStats(checked,selDay);
+  const items=(filterCat==="all"?day.items:day.items.filter(i=>i.cat===filterCat))
+    .slice().sort((a,b)=>a.time.localeCompare(b.time));
+
+  const statsBar=`<div class="card stats-bar">
+    ${ringHTML(stats.pct,68,day.color)}
+    <div class="stats-right">
+      <div class="stats-count">${stats.done}/${stats.total} kész</div>
+      ${progBar(stats.pct,day.color)}
+      <div class="badges">${Object.keys(CAT_CFG).map(c=>{const cv=stats.bycat[c];if(!cv||!cv.total)return"";return badge(c,`${CAT_CFG[c].label}: ${cv.done}/${cv.total}`);}).join("")}</div>
+    </div>
+  </div>`;
+
+  const edzBanner=day.edzés?`<div class="edzés-banner" style="background:#e85d3a15;border:1px solid #e85d3a33;color:#e85d3a">${day.edzés}</div>`:"";
+
+  const filters=`<div class="filter-row">
+    ${[["all","Összes"],...Object.entries(CAT_CFG).map(([k,v])=>[k,v.label])].map(([key,lbl])=>{
+      const a=filterCat===key;const c=CAT_CFG[key];
+      const bc=a?(key==="all"?"#2ecc71":c?.border):"#ffffff15";
+      const bg=a?(key==="all"?"#2ecc7122":c?.bg):"transparent";
+      const col=a?(key==="all"?"#2ecc71":c?.text):"#ffffff55";
+      return`<button class="filter-btn ${a?"active":""}" onclick="setFilter('${key}')"
+        style="border-color:${bc};background:${bg};color:${col}">${lbl}</button>`;
+    }).join("")}
+  </div>`;
+
+  const itemsHTML=items.map(item=>{
+    const done=!!checked[item.id];const cc=CAT_CFG[item.cat];
+    return`<div class="item-card" onclick="toggleItem('${item.id}')"
+      style="background:${done?cc.bg:"#131720"};border-color:${done?cc.border+"44":"#ffffff0a"}">
+      <span class="item-icon">${item.icon}</span>
+      <div class="item-body">
+        <div class="item-label ${done?"done":""}">${item.label}</div>
+        <div class="item-time">${item.time}</div>
+      </div>
+      <div class="checkbox" style="border-color:${done?cc.border:"#ffffff22"};background:${done?cc.border:"transparent"}">
+        ${done?`<svg width="12" height="9" viewBox="0 0 12 9" fill="none"><path d="M1 4.5L4.5 8L11 1" stroke="#0d0f14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`:""}
+      </div>
+    </div>`;
+  }).join("");
+
+  return statsBar+edzBanner+filters+itemsHTML;
+}
+
+function renderWeightSection(){
+  const {weightData,wInput,wSaved}=state;
+  const entries=Object.entries(weightData).sort((a,b)=>a[0].localeCompare(b[0])).map(([d,w])=>({d,w}));
+  const latestW=entries.length?entries[entries.length-1].w:START_W;
+  const delta=(latestW-START_W).toFixed(1);
+  const goalDiff=(GOAL_W-latestW).toFixed(1);
+  const todayW=weightData[todayStr()];
+  return`<div class="card">
+    <div class="card-title">⚖️ Testsúly napló</div>
+    <div class="weight-stats">
+      <div class="weight-stat"><div class="val" style="color:#3a7bd5">${latestW} kg</div><div class="lbl">Jelenlegi</div></div>
+      <div class="weight-stat"><div class="val" style="color:#ffffff44">${START_W} kg</div><div class="lbl">Kezdő</div></div>
+      <div class="weight-stat"><div class="val" style="color:${delta>=0?"#2ecc71":"#e85d3a"}">${delta>=0?"+":""}${delta} kg</div><div class="lbl">Változás</div></div>
+      <div class="weight-stat"><div class="val" style="color:#f39c12">${GOAL_W} kg</div><div class="lbl">Cél</div></div>
+    </div>
+    ${weightChartHTML(entries)}
+    <div class="weight-input-row">
+      <input class="weight-input" type="number" step="0.1" min="50" max="150"
+        placeholder="${todayW?"Mai: "+todayW+" kg":"Mai súly (kg)"}"
+        value="${wInput}" oninput="setWInput(this.value)" onkeydown="if(event.key==='Enter')saveWeight()"/>
+      <button class="weight-btn" onclick="saveWeight()">${wSaved?"✓":"Ment"}</button>
+    </div>
+    ${goalDiff>0?`<div class="weight-goal">Még <span style="color:#f39c12;font-weight:700">${goalDiff} kg</span> a lean bulk célig (85.6 → 90 kg)</div>`:""}
+  </div>`;
+}
+
+function renderSummaryView(){
+  const {weekId,allData}=state;
+  const today=todayDow();
+  const weekChecked=(()=>{const m={};if(allData?.[weekId])for(const d of Object.keys(allData[weekId]))Object.assign(m,allData[weekId][d]);return m;})();
+  const ws=calcWeekStats(weekChecked);
+  const catRows=Object.keys(CAT_CFG).map(c=>{const cv=ws.bycat[c];if(!cv||!cv.total)return"";
+    const pct=Math.round(cv.done/cv.total*100);
+    return`<div class="cat-row">
+      <span class="cat-label" style="color:${CAT_CFG[c].text}">${CAT_CFG[c].label}</span>
+      <div style="flex:1">${progBar(pct,CAT_CFG[c].border)}</div>
+      <span class="cat-num">${cv.done}/${cv.total}</span>
+    </div>`;}).join("");
+  const dayRows=Object.entries(WEEK_PLAN).map(([dow,dd])=>{
+    const dc=allData?.[weekId]?.[dow]||{};const ds=calcStats(dc,parseInt(dow));
+    const isT=parseInt(dow)===today;const col=pctColor(ds.pct);
+    return`<div class="day-week-row" onclick="goDay(${dow})">
+      <span class="day-week-short" style="color:${isT?dd.color:"#ffffff55"}">${dd.short}${isT?"📍":""}</span>
+      <div style="flex:1">${progBar(ds.pct,col)}</div>
+      <span style="font-size:11px;color:#ffffff44;font-family:monospace;width:30px;text-align:right">${ds.pct}%</span>
+    </div>`;}).join("");
+  return`
+    <div class="card stats-bar">${ringHTML(ws.pct,80,"#2ecc71")}
+      <div><div style="font-size:13px;color:#ffffff55;margin-bottom:3px">Aktuális hét</div>
+        <div style="font-size:20px;font-weight:800">${ws.done}/${ws.total}</div>
+        <div style="font-size:11px;color:#ffffff44;font-family:monospace">${weekId}</div></div>
+    </div>
+    <div class="card"><div class="card-title">Kategóriánként (hét)</div>${catRows}</div>
+    <div class="card"><div class="card-title">Napok (aktuális hét)</div>${dayRows}</div>
+    ${renderWeightSection()}`;
+}
+
+function renderMonthView(){
+  const {allData,monthOff}=state;
+  const now=new Date(),tDate=new Date(now.getFullYear(),now.getMonth()+monthOff,1);
+  const tY=tDate.getFullYear(),tM=tDate.getMonth();
+  const mWeeks=weeksInMonth(tY,tM).map(wid=>{
+    const wData=allData?.[wid];const merged={};
+    if(wData)for(const d of Object.keys(wData))Object.assign(merged,wData[d]);
+    return{wid,...calcWeekStats(merged)};
+  });
+  const mAvg=mWeeks.length?Math.round(mWeeks.reduce((s,w)=>s+w.pct,0)/mWeeks.length):0;
+  const mByCat={};for(const c of Object.keys(CAT_CFG))mByCat[c]={total:0,done:0};
+  for(const w of mWeeks)if(w.bycat)for(const c of Object.keys(CAT_CFG))if(w.bycat[c]){mByCat[c].total+=w.bycat[c].total;mByCat[c].done+=w.bycat[c].done;}
+  const mCol=pctColor(mAvg);
+  const catRows=Object.keys(CAT_CFG).map(c=>{const cv=mByCat[c];if(!cv||!cv.total)return"";
+    const pct=Math.round(cv.done/cv.total*100);
+    return`<div class="cat-row">
+      <span class="cat-label" style="color:${CAT_CFG[c].text}">${CAT_CFG[c].label}</span>
+      <div style="flex:1">${progBar(pct,CAT_CFG[c].border)}</div>
+      <span class="cat-num">${pct}%</span>
+    </div>`;}).join("");
+  const weekDetail=mWeeks.map(w=>{const wc=pctColor(w.pct);
+    return`<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-size:12px;color:#ffffff77;font-family:monospace">${w.wid}</span>
+        <span style="font-size:13px;font-weight:700;color:${wc}">${w.pct}%</span>
+      </div>${progBar(w.pct,wc)}</div>`;}).join("");
+  return`
+    <div class="month-nav">
+      <button class="month-nav-btn" onclick="chMonth(-1)">◀</button>
+      <span class="month-nav-label">${MONTH_HU[tM]} ${tY}</span>
+      <button class="month-nav-btn" onclick="chMonth(1)">▶</button>
+    </div>
+    <div class="card stats-bar">${ringHTML(mAvg,80,mCol)}
+      <div><div style="font-size:13px;color:#ffffff55;margin-bottom:4px">Havi átlag</div>
+        <div style="font-size:22px;font-weight:800;color:${mCol}">${mAvg}%</div>
+        <div style="font-size:12px;color:#ffffff44;margin-top:2px">${mWeeks.length} hét alapján</div></div>
+    </div>
+    <div class="card"><div class="card-title">Hetek teljesítése</div>${monthBarsHTML(mWeeks)}</div>
+    <div class="card"><div class="card-title">Kategóriánként</div>${catRows}</div>
+    <div class="card"><div class="card-title">Hetek részletesen</div>${weekDetail}</div>
+    ${renderWeightSection()}`;
+}
+
+function renderBottomBar(){
+  const {view,filterCat}=state;
+  const label=filterCat!=="all"?` (${CAT_CFG[filterCat]?.label})`:"";
+  return`<div class="bottom-bar">
+    ${view==="today"?`<button class="act-btn" onclick="checkAll()" style="border:1px solid #2ecc7144;background:#2ecc7118;color:#2ecc71">✓ Mindet kész${label}</button>`:""}
+    <button class="act-btn" onclick="reqNotif()" style="border:1px solid #9b59b644;background:#9b59b618;color:#9b59b6">🔔 Értesítés</button>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MAIN RENDER
+// ═══════════════════════════════════════════════════════════════
+function render(){
+  const {view,selDay,banner}=state;
+  const day=WEEK_PLAN[selDay];
+  let content="";
+  if(view==="today"){
+    content=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <span style="font-size:15px;font-weight:700">${day?.label}</span>
+    </div>${renderDayView()}`;
+  } else if(view==="summary"){
+    content=renderSummaryView();
+  } else if(view==="month"){
+    content=renderMonthView();
+  } else if(view==="weight"){
+    content=`<div style="font-size:15px;font-weight:700;margin-bottom:12px">⚖️ Súlynapló</div>${renderWeightSection()}`;
+  }
+  document.getElementById("app").innerHTML=
+    renderHeader()+
+    (view==="today"?renderDayRow():"")+
+    `<div class="content">${banner?`<div class="banner">${banner}</div>`:""}${content}</div>`+
+    renderBottomBar();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ACTIONS (global functions called from HTML)
+// ═══════════════════════════════════════════════════════════════
+function setView(v){setState({view:v});}
+function selDay(d){setState({selDay:parseInt(d)});}
+function goDay(d){setState({selDay:parseInt(d),view:"today"});}
+function setFilter(f){setState({filterCat:f});}
+function chMonth(dir){setState(s=>({monthOff:Math.min(s.monthOff+dir,0)}));}
+function setWInput(v){setState({wInput:v});}
+
+function toggleItem(id){
+  setState(s=>{
+    const ad=JSON.parse(JSON.stringify(s.allData));
+    if(!ad[s.weekId])ad[s.weekId]={};
+    if(!ad[s.weekId][s.selDay])ad[s.weekId][s.selDay]={};
+    ad[s.weekId][s.selDay][id]=!ad[s.weekId][s.selDay][id];
+    saveLS(TKEY,ad);
+    return{allData:ad};
+  });
+}
+
+function checkAll(){
+  setState(s=>{
+    const ad=JSON.parse(JSON.stringify(s.allData));
+    if(!ad[s.weekId])ad[s.weekId]={};
+    if(!ad[s.weekId][s.selDay])ad[s.weekId][s.selDay]={};
+    const items=s.filterCat==="all"?WEEK_PLAN[s.selDay].items:WEEK_PLAN[s.selDay].items.filter(i=>i.cat===s.filterCat);
+    for(const it of items)ad[s.weekId][s.selDay][it.id]=true;
+    saveLS(TKEY,ad);
+    return{allData:ad};
+  });
+}
+
+function saveWeight(){
+  const val=parseFloat(state.wInput.replace(",","."));
+  if(isNaN(val)||val<50||val>150)return;
+  setState(s=>{
+    const wd={...s.weightData,[todayStr()]:val};
+    saveLS(WKEY,wd);
+    return{weightData:wd,wInput:"",wSaved:true};
+  });
+  setTimeout(()=>setState({wSaved:false}),2000);
+}
+
+function reqNotif(){
+  if("Notification" in window){
+    Notification.requestPermission().then(p=>{
+      if(p==="granted"){
+        setState({banner:"✅ Értesítések OK! Safari → Megosztás → Főképernyőre helyezés"});
+        setTimeout(()=>setState({banner:null}),7000);
+        new Notification("GN Tracker 💪",{body:"Értesítések aktívak!"});
+      }
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+render();
+</script>
+</body>
+</html>
